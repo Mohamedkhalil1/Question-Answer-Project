@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\AskQuestionRequest;
 use Illuminate\Http\Request;
 use App\Question;
 
@@ -14,8 +15,11 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        $questions = Question::latest()->paginate(5);
-        return view('question.index',compact('questions'));
+        if(\Gate::allows('index-question')){
+            $questions = Question::with('user')->latest()->paginate(5);
+            return view('question.index',compact('questions'));
+        }
+      abort(403,'access denied');
     }
 
     /**
@@ -25,7 +29,7 @@ class QuestionController extends Controller
      */
     public function create()
     {
-        //
+        return view('question.create');
     }
 
     /**
@@ -34,9 +38,10 @@ class QuestionController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $request)
+    public function store(AskQuestionRequest $request)
     {
-        //
+        $request->user()->question()->create($request->only('title','body'));
+        return redirect()->route('question.index')->with('success' ,'your question has been added');
     }
 
     /**
@@ -45,9 +50,10 @@ class QuestionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Question $question)
     {
-        //
+        $question->increment('views');
+        return view('question.show',compact('question'));
     }
 
     /**
@@ -56,9 +62,12 @@ class QuestionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function edit($id)
+    public function edit(Question $question)
     {
-        //
+        if(\Gate::allows('update-question',$question)){
+            return view('question.edit',compact('question'));
+        }
+        abort(403,'access denied');
     }
 
     /**
@@ -68,9 +77,10 @@ class QuestionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(AskQuestionRequest $request, Question $question)
     {
-        //
+        $question->update($request->only('title','body'));
+        return redirect()->route('question.index')->with('success' ,'your question has been updated');
     }
 
     /**
@@ -79,8 +89,9 @@ class QuestionController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Question $question)
     {
-        //
+        $question->delete();
+        return redirect()->route('question.index')->with('success' ,'your question has been deleted');
     }
 }
