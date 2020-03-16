@@ -1,4 +1,5 @@
 @extends('layouts.app')
+@section('title' , 'Questions')
 @section('content')
 <div class="container">
     <div class="row justify-content-center">
@@ -33,18 +34,20 @@
                             <div class="media-body">
                                 <div class="d-flex align-items-center">
                                     <h3 class="mt-0"><a href="{{ $question->url }}">{{ $question->title }}</a></h3>
-                                   @if(auth()->user()->can('update-question',$question))
-                                        <div class="ml-auto">
+                                  
+                                    <div class="ml-auto">
+                                       @can('update',$question)
                                             <a href="{{route('question.edit',$question->id)}}" class="btn btn-sm btn-outline-info">Edit</a>
-                                    @endif
-                                    @if(auth()->user()->can('deleted-question',$question))
+                                        @endcan
+                                        @can('delete',$question)
                                             <form class="form-delete" action="{{route('question.destroy',$question->id)}}" method="POST">
                                                 @method('DELETE')
                                                 @csrf
                                                 <button type="submit" class="btn btn-outline-danger btn-sm" onclick="reutrn confirm('Are you sure?')">Delete</button>
                                             </form>
-                                        </div>
-                                    @endif
+                                        @endif
+                                    </div>
+                                    
                                 </div>
                                 <p class="lead">
                                     Asked by <a href="{{ $question->user->url }}">{{ $question->user->name }}</a>

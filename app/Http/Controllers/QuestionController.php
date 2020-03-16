@@ -8,6 +8,11 @@ use App\Question;
 
 class QuestionController extends Controller
 {
+
+    public function __construct()
+    {
+        $this->middleware('auth')->except('index','show');
+    }
     /**
      * Display a listing of the resource.
      *
@@ -15,11 +20,8 @@ class QuestionController extends Controller
      */
     public function index()
     {
-        if(\Gate::allows('index-question')){
-            $questions = Question::with('user')->latest()->paginate(5);
-            return view('question.index',compact('questions'));
-        }
-      abort(403,'access denied');
+        $questions = Question::with('user')->latest()->paginate(5);
+        return view('question.index',compact('questions'));
     }
 
     /**
@@ -64,10 +66,9 @@ class QuestionController extends Controller
      */
     public function edit(Question $question)
     {
-        if(\Gate::allows('update-question',$question)){
-            return view('question.edit',compact('question'));
-        }
-        abort(403,'access denied');
+        $this->authorize('update',$question);
+        return view('question.edit',compact('question'));
+    
     }
 
     /**
