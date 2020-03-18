@@ -26,6 +26,11 @@ class AnswerController extends Controller
         return redirect()->route('question.show',$question->slug)->with('success','answer has been added');
     }
 
+
+    public function edit(Question $question , Answer $answer){
+        $this->authorize('update',$answer);
+        return view('answers.edit',compact('question','answer'));
+    }
     /**
      * Update the specified resource in storage.
      *
@@ -33,9 +38,13 @@ class AnswerController extends Controller
      * @param  \App\Answer  $answer
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Answer $answer)
+    public function update(AnswerRequest $request, Question $question ,Answer $answer)
     {
-        //
+       $this->authorize('update',$answer);
+       $answer->update([
+           'body'=>$request->body
+           ]);
+        return redirect()->route('question.show',[$question->slug])->with('success','your answer has been updated');
     }
 
     /**
@@ -44,8 +53,10 @@ class AnswerController extends Controller
      * @param  \App\Answer  $answer
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Answer $answer)
+    public function destroy(Question $question,Answer $answer)
     {
-        //
+        $this->authorize('delete',$answer);
+        $answer->delete();
+        return redirect()->route('question.show',$question->slug)->with('success','your answer has been deleted');
     }
 }
